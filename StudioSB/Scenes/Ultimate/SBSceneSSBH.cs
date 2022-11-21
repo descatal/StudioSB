@@ -17,6 +17,7 @@ using IONET.Core.Model;
 using IONET.Core;
 using StudioSB.GUI;
 using System.Drawing.Design;
+using System;
 
 namespace StudioSB.Scenes.Ultimate
 {
@@ -119,7 +120,7 @@ namespace StudioSB.Scenes.Ultimate
             string meshPath = "";
             string skelPath = "";
             string matlPath = "";
-            foreach (string file in Directory.EnumerateFiles(folderPath))
+            foreach (string file in Directory.EnumerateFiles(folderPath, "*", SearchOption.AllDirectories))
             {
                 // load textures
                 if (file.EndsWith(".nutexb"))
@@ -127,16 +128,16 @@ namespace StudioSB.Scenes.Ultimate
                     Surfaces.Add(IO_NUTEXB.Open(file));
                 }
 
-                string fileName = Path.GetFileName(file);
-                if (fileName.Equals(modl.SkeletonFileName))
+                var relativeFilePathName = GetRelativePath(file, folderPath);
+                if (relativeFilePathName.Equals(modl.SkeletonFileName))
                 {
                     skelPath = file;
                 }
-                if (fileName.Equals(modl.MeshString))
+                if (relativeFilePathName.Equals(modl.MeshString))
                 {
                     meshPath = file;
                 }
-                if (fileName.Equals(modl.MaterialFileNames[0].MaterialFileName))
+                if (relativeFilePathName.Equals(modl.MaterialFileNames[0].MaterialFileName))
                 {
                     matlPath = file;
                 }
@@ -788,6 +789,18 @@ namespace StudioSB.Scenes.Ultimate
         public override ISBMaterial[] GetMaterials()
         {
             return Materials.ToArray();
+        }
+
+        string GetRelativePath(string filespec, string folder)
+        {
+            Uri pathUri = new Uri(filespec);
+            // Folders must end in a slash
+            if (!folder.EndsWith(Path.DirectorySeparatorChar.ToString()))
+            {
+                folder += Path.DirectorySeparatorChar;
+            }
+            Uri folderUri = new Uri(folder);
+            return Uri.UnescapeDataString(folderUri.MakeRelativeUri(pathUri).ToString());
         }
 
         #region Rendering

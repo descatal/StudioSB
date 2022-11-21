@@ -40,7 +40,7 @@ namespace StudioSB.Scenes.Ultimate
                         foreach (var meshObject in mesh.Objects)
                         {
                             SBUltimateMesh sbMesh = new SBUltimateMesh();
-                            sbMesh.EnableAttributes(meshObject);
+                            //sbMesh.EnableAttributes(meshObject);
 
                             sbMesh.Name = meshObject.Name;
                             sbMesh.ParentBone = meshObject.ParentBoneName;
