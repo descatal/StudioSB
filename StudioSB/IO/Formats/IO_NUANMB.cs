@@ -42,19 +42,32 @@ namespace StudioSB.IO.Formats
                     anim.Name = animation.Name;
                     anim.FrameCount = animation.FinalFrameIndex + 1;
 
-                    foreach (var group in animation.Animations)
+                    if(animation.Version == "1.2")
                     {
-                        if (group.Type == AnimType.Visibility)
+                        foreach (var track in animation.Track_V12)
                         {
-                            ReadVisibilityAnimations(animation, group, anim);
+                            if (track.Type == AnimTrackTypeV12.Transform)
+                            {
+                                ReadTransformAnimationsV12(animation, track, anim);
+                            }
                         }
-                        if (group.Type == AnimType.Transform)
+                    }
+                    else
+                    {
+                        foreach (var group in animation.Animations)
                         {
-                            ReadTransformAnimations(animation, group, anim);
-                        }
-                        if (group.Type == AnimType.Material)
-                        {
-                            ReadMaterialAnimations(animation, group, anim);
+                            if (group.Type == AnimType.Visibility)
+                            {
+                                ReadVisibilityAnimations(animation, group, anim);
+                            }
+                            if (group.Type == AnimType.Transform)
+                            {
+                                ReadTransformAnimations(animation, group, anim);
+                            }
+                            if (group.Type == AnimType.Material)
+                            {
+                                ReadMaterialAnimations(animation, group, anim);
+                            }
                         }
                     }
                 }
@@ -114,6 +127,50 @@ namespace StudioSB.IO.Formats
             }
         }
 
+        private void ReadTransformAnimationsV12(Anim animFile, AnimTrackV12 animTrackV12, SBAnimation animation)
+        {
+            var decoder = new SsbhAnimTrackDecoder(animFile);
+
+            foreach (AnimPropertiesV12 animProp in animTrackV12.Properties)
+            {
+                SBTransformAnimation tfrmAnim = new SBTransformAnimation()
+                {
+                    Name = animProp.Name
+                };
+                SBTransformTrack X = new SBTransformTrack(SBTrackType.TranslateX);
+                SBTransformTrack Y = new SBTransformTrack(SBTrackType.TranslateY);
+                SBTransformTrack Z = new SBTransformTrack(SBTrackType.TranslateZ);
+                SBTransformTrack RX = new SBTransformTrack(SBTrackType.RotateX);
+                SBTransformTrack RY = new SBTransformTrack(SBTrackType.RotateY);
+                SBTransformTrack RZ = new SBTransformTrack(SBTrackType.RotateZ);
+                SBTransformTrack SX = new SBTransformTrack(SBTrackType.ScaleX);
+                SBTransformTrack SY = new SBTransformTrack(SBTrackType.ScaleY);
+                SBTransformTrack SZ = new SBTransformTrack(SBTrackType.ScaleZ);
+                SBTransformTrack CompensateScale = new SBTransformTrack(SBTrackType.CompensateScale);
+                tfrmAnim.Tracks.AddRange(new SBTransformTrack[] { X, Y, Z, RX, RY, RZ, SX, SY, SZ, CompensateScale });
+
+                object[] Transform = decoder.ReadTrackV12(animProp);
+                for (int i = 0; i < Transform.Length; i++)
+                {
+                    AnimTrackTransform t = (AnimTrackTransform)Transform[i];
+
+                    SBBone transform = new SBBone();
+                    transform.Transform = GetMatrix((AnimTrackTransform)Transform[i]);
+                    X.AddKey(i, transform.X);
+                    Y.AddKey(i, transform.Y);
+                    Z.AddKey(i, transform.Z);
+                    RX.AddKey(i, transform.RX);
+                    RY.AddKey(i, transform.RY);
+                    RZ.AddKey(i, transform.RZ);
+                    SX.AddKey(i, transform.SX);
+                    SY.AddKey(i, transform.SY);
+                    SZ.AddKey(i, transform.SZ);
+                    CompensateScale.AddKey(i, t.CompensateScale);
+                }
+
+                animation.TransformNodes.Add(tfrmAnim);
+            }
+        }
 
         private static Matrix4 GetMatrix(AnimTrackTransform Transform)
         {
