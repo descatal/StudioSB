@@ -307,7 +307,7 @@ namespace StudioSB.Scenes.Ultimate
                 IOPolygon poly = new IOPolygon();
                 iomesh.Polygons.Add(poly);
 
-                poly.MaterialName = mesh.Material.Label;
+                poly.MaterialName = "test"; // mesh.Material.Label;
                 
                 poly.Indicies.AddRange(mesh.Indices.Select(e=>(int)e + iomesh.Vertices.Count));
 

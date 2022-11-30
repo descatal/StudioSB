@@ -35,7 +35,7 @@ namespace StudioSB.Tools
 
                 List<uint> MipOffsets = new List<uint>();
 
-                for (int mipLevel = 0; mipLevel < MipCount; mipLevel++)
+                for (int mipLevel = 0; mipLevel < MipOffsets.Count; mipLevel++)
                 {
                     uint width = (uint)Math.Max(1, surface.Width >> mipLevel);
                     uint height = (uint)Math.Max(1, surface.Height >> mipLevel);
